@@ -236,6 +236,12 @@ pub fn load<P: AsRef<Path>>(filename: P, device: &Device) -> Result<HashMap<Stri
     load_buffer(&data[..], device)
 }
 
+pub fn load_metadata<P: AsRef<Path>>(filename: P) -> Result<Option<HashMap<String, String>>> {
+    let data = std::fs::read(filename.as_ref())?;
+    let (_, m) = safetensors::SafeTensors::read_metadata(&data[..])?;
+    Ok(m.metadata().clone())
+}
+
 pub fn load_buffer(data: &[u8], device: &Device) -> Result<HashMap<String, Tensor>> {
     let st = safetensors::SafeTensors::deserialize(data)?;
     st.tensors()
@@ -249,6 +255,14 @@ pub fn save<K: AsRef<str> + Ord + std::fmt::Display, P: AsRef<Path>>(
     filename: P,
 ) -> Result<()> {
     Ok(st::serialize_to_file(tensors, &None, filename.as_ref())?)
+}
+
+pub fn save_with_info<K: AsRef<str> + Ord + std::fmt::Display, P: AsRef<Path>>(
+    tensors: &HashMap<K, Tensor>,
+    info: &Option<HashMap<String, String>>,
+    filename: P,
+) -> Result<()> {
+    Ok(st::serialize_to_file(tensors, info, filename.as_ref())?)
 }
 
 #[derive(yoke::Yokeable)]

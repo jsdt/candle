@@ -34,6 +34,17 @@ impl VarMap {
         Ok(())
     }
 
+    pub fn save_with_info<P: AsRef<std::path::Path>>(
+        &self,
+        path: P,
+        info: &Option<HashMap<String, String>>,
+    ) -> Result<()> {
+        let tensor_data = self.data.lock().unwrap();
+        let data = tensor_data.iter().map(|(k, v)| (k, v.as_tensor()));
+        safetensors::tensor::serialize_to_file(data, info, path.as_ref())?;
+        Ok(())
+    }
+
     /// Load some values from a safetensors file and modify the existing variables to have these
     /// values.
     ///
